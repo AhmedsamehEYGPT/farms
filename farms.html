@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Farm Listings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --grass:#5c9e31;
+    --grass-dark:#3f7020;
+    --dirt:#6b4a2e;
+    --dirt-dark:#4a3220;
+    --stone:#8a8a8a;
+    --panel:#c6c6c6;
+    --panel-dark:#8b8b8b;
+    --panel-light:#ffffff;
+    --panel-shadow:#373737;
+    --panel-bg:#232323;
+    --emerald:#3fd97a;
+    --emerald-dark:#1c9a4c;
+    --gold:#ffd83d;
+    --ink:#2a2a2a;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--panel-bg);
+    background-image:
+      linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)),
+      repeating-conic-gradient(#2b2b2b 0% 25%, #262626 0% 50%);
+    background-size:auto, 32px 32px;
+    color:var(--ink);
+    font-family:"VT323", monospace;
+    font-size:19px;
+    image-rendering:pixelated;
+  }
+  header.hero{
+    padding:48px 6vw 40px;
+    background:
+      linear-gradient(rgba(0,0,0,0.15), rgba(0,0,0,0.35)),
+      repeating-linear-gradient(90deg, var(--grass) 0 16px, var(--grass-dark) 16px 18px);
+    border-bottom:6px solid var(--dirt);
+    box-shadow: inset 0 -14px 0 -6px var(--dirt), inset 0 -20px 0 -14px var(--dirt-dark);
+    text-align:center;
+  }
+  .kicker{
+    font-family:"Press Start 2P", monospace;
+    font-size:11px;
+    color:var(--gold);
+    text-shadow:2px 2px 0 #000;
+    margin:0 0 14px;
+  }
+  header.hero h1{
+    font-family:"Press Start 2P", monospace;
+    font-size:clamp(22px,4vw,34px);
+    margin:0 0 16px;
+    color:#fff;
+    text-shadow:3px 3px 0 #000;
+    line-height:1.5;
+  }
+  header.hero p.sub{
+    max-width:52ch;
+    margin:0 auto;
+    font-size:21px;
+    color:#eef7e2;
+    text-shadow:1px 1px 0 #000;
+  }
+
+  .toolbar{
+    display:flex;
+    gap:14px;
+    align-items:center;
+    padding:18px 6vw;
+    flex-wrap:wrap;
+    background:var(--panel);
+    border-bottom:4px solid var(--panel-shadow);
+    box-shadow: inset 0 3px 0 var(--panel-light), inset 0 -3px 0 var(--panel-dark);
+    position:sticky;
+    top:0;
+    z-index:5;
+  }
+  .toolbar input, .toolbar select{
+    font-family:"VT323", monospace;
+    font-size:18px;
+    padding:8px 12px;
+    border:none;
+    background:#1e1e1e;
+    color:#eaffea;
+    box-shadow: inset 2px 2px 0 #000, inset -2px -2px 0 #4a4a4a;
+  }
+  .toolbar input{flex:1;min-width:160px;}
+  .toolbar .count{
+    margin-left:auto;
+    font-family:"Press Start 2P", monospace;
+    font-size:11px;
+    color:#333;
+  }
+
+  main{
+    padding:36px 6vw 80px;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+    gap:20px;
+  }
+  .card{
+    background:var(--panel);
+    box-shadow:
+      inset 2px 2px 0 var(--panel-light),
+      inset -2px -2px 0 var(--panel-shadow),
+      inset 4px 4px 0 #ffffffaa,
+      inset -4px -4px 0 #6b6b6baa;
+    display:flex;
+    flex-direction:column;
+    padding:8px;
+  }
+  .card .thumb{
+    position:relative;
+    aspect-ratio:4/3;
+    overflow:hidden;
+    background:#1e1e1e;
+    box-shadow: inset 2px 2px 0 #000, inset -2px -2px 0 #555;
+  }
+  .card .thumb img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  .card .thumb .price-tag{
+    position:absolute;
+    bottom:6px;
+    left:6px;
+    background:#0009;
+    color:var(--gold);
+    font-family:"Press Start 2P", monospace;
+    font-size:12px;
+    padding:6px 8px;
+    text-shadow:2px 2px 0 #000;
+  }
+  .card .body{
+    padding:12px 8px 8px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    flex:1;
+  }
+  .card h3{
+    margin:0;
+    font-family:"Press Start 2P", monospace;
+    font-size:13px;
+    line-height:1.6;
+    color:var(--ink);
+  }
+  .stat-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:#1e1e1e;
+    padding:8px 10px;
+    margin-top:auto;
+    box-shadow: inset 2px 2px 0 #000, inset -2px -2px 0 #4a4a4a;
+  }
+  .stat-row .label{
+    font-size:16px;
+    color:#a9c9a9;
+  }
+  .stat-row .value{
+    font-size:20px;
+    color:var(--emerald);
+    font-weight:bold;
+  }
+  .card button{
+    margin-top:2px;
+    font-family:"Press Start 2P", monospace;
+    font-size:11px;
+    padding:12px 10px;
+    background:var(--panel);
+    color:#1c1c1c;
+    border:none;
+    box-shadow: inset 2px 2px 0 var(--panel-light), inset -2px -2px 0 var(--panel-shadow);
+    cursor:pointer;
+  }
+  .card button:hover{
+    background:var(--emerald);
+    color:#062b12;
+  }
+  .card button:active{
+    box-shadow: inset -2px -2px 0 var(--panel-light), inset 2px 2px 0 var(--panel-shadow);
+  }
+  .card button:focus-visible, .toolbar input:focus-visible, .toolbar select:focus-visible{
+    outline:3px solid var(--gold);
+    outline-offset:2px;
+  }
+  .empty{
+    padding:60px 0;
+    text-align:center;
+    font-family:"Press Start 2P", monospace;
+    font-size:13px;
+    color:#ccc;
+  }
+
+  footer{
+    padding:26px 6vw 40px;
+    font-size:16px;
+    color:#bbb;
+    background:var(--panel-bg);
+    border-top:4px solid var(--panel-shadow);
+    text-align:center;
+  }
+
+  @media (max-width:520px){
+    header.hero{padding:36px 5vw 28px;}
+    .toolbar{padding:14px 5vw;}
+    main{padding:24px 5vw 60px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <p class="kicker">★ FARM MARKET ★</p>
+  <h1>FARMS FOR SALE</h1>
+  <p class="sub">Every listing shows what the farm earns per hour and its price. Tap a listing to get in touch about it.</p>
+</header>
+
+<div class="toolbar">
+  <input id="search" type="text" placeholder="Search farms...">
+  <select id="sort">
+    <option value="default">Sort: default</option>
+    <option value="price-asc">Price: low to high</option>
+    <option value="price-desc">Price: high to low</option>
+    <option value="rate-desc">Earnings/hr: high to low</option>
+  </select>
+  <span class="count" id="count"></span>
+</div>
+
+<main>
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty" style="display:none;">NO FARMS FOUND</div>
+</main>
+
+<footer>
+  Contact the seller through the button on each listing. Prices &amp; rates may change.
+</footer>
+
+<script>
+/* ============================================================
+   EDIT YOUR FARMS HERE.
+   - image: filename of the photo (keep it inside an "images"
+     folder next to this HTML file, e.g. "images/farm1.png")
+   - name: listing title
+   - ratePerHour: how much IN-GAME MONEY the farm earns per hour,
+     as a raw number (e.g. 100000000 shows as "100m/hr")
+   - priceUSD: what YOU are asking for the farm, in REAL money
+     (a normal number, e.g. 25 shows as "$25")
+   Add as many objects as you want — the grid handles any amount.
+   ============================================================ */
+const FARMS = [
+  { image: "farm1.png", name: "FARM #1", ratePerHour: 135000000, priceUSD: 25 },
+  { image: "farm2.png", name: "FARM #2", ratePerHour: 35000000, priceUSD: 10 },
+  { image: "farm3.png", name: "FARM #3", ratePerHour: 150000000, priceUSD: 45 },
+  { image: "farm4.png", name: "FARM #4", ratePerHour: 300000, priceUSD: 15 },
+  { image: "farm5.png", name: "FARM #5", ratePerHour: 25000000, priceUSD: 8 },
+];
+
+/* Formats real money nicely: 25 -> "$25", 1500 -> "$1,500" */
+function formatUSD(n){
+  return "$" + n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+}
+
+/* Formats a raw in-game number into Minecraft/SMP-style shorthand: 100000000 -> "100m" */
+function formatMC(n){
+  const units = [
+    { v: 1e9, s: "b" },
+    { v: 1e6, s: "m" },
+    { v: 1e3, s: "k" },
+  ];
+  for(const u of units){
+    if(n >= u.v){
+      const num = n / u.v;
+      const rounded = Number.isInteger(num) ? num : Math.round(num * 10) / 10;
+      return rounded + u.s;
+    }
+  }
+  return n.toString();
+}
+
+function render(list){
+  const grid = document.getElementById("grid");
+  const empty = document.getElementById("empty");
+  const count = document.getElementById("count");
+  grid.innerHTML = "";
+
+  empty.style.display = list.length === 0 ? "block" : "none";
+
+  list.forEach(farm => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="thumb">
+        <img src="${farm.image}" alt="${farm.name}" loading="lazy">
+        <div class="price-tag">${formatUSD(farm.priceUSD)}</div>
+      </div>
+      <div class="body">
+        <h3>${farm.name}</h3>
+        <div class="stat-row">
+          <span class="label">EARNS/HR</span>
+          <span class="value">$${formatMC(farm.ratePerHour)}</span>
+        </div>
+        <button type="button" data-name="${farm.name}">I'M INTERESTED</button>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  count.textContent = list.length + (list.length === 1 ? " FARM" : " FARMS");
+}
+
+function currentList(){
+  const q = document.getElementById("search").value.trim().toLowerCase();
+  const sort = document.getElementById("sort").value;
+  let list = FARMS.filter(f => f.name.toLowerCase().includes(q));
+
+  if(sort === "price-asc") list.sort((a,b) => a.priceUSD - b.priceUSD);
+  if(sort === "price-desc") list.sort((a,b) => b.priceUSD - a.priceUSD);
+  if(sort === "rate-desc") list.sort((a,b) => b.ratePerHour - a.ratePerHour);
+
+  return list;
+}
+
+document.getElementById("search").addEventListener("input", () => render(currentList()));
+document.getElementById("sort").addEventListener("change", () => render(currentList()));
+
+document.getElementById("grid").addEventListener("click", (e) => {
+  if(e.target.tagName === "BUTTON"){
+    alert("Replace this with your contact link (e.g. Discord, WhatsApp) in the script at the bottom of the HTML file.");
+  }
+});
+
+render(FARMS);
+</script>
+
+</body>
+</html>
